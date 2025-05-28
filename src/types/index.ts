@@ -1,17 +1,19 @@
 export interface User {
   id: string;
   email: string;
-  name: string;
+  createdAt: Date;
 }
 
 export interface Password {
   id: string;
+  userId: string;
   title: string;
   username: string;
   password: string;
-  website?: string;
+  url?: string;
   category?: string;
   notes?: string;
+  website?: string;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,34 +1,42 @@
-import React from 'react';
-import { Shield } from 'lucide-react';
+import React from "react";
+import { Lock } from "lucide-react";
 
 interface AuthLayoutProps {
-  children: React.ReactNode;
   title: string;
-  subtitle?: string;
+  subtitle: string;
+  children: React.ReactNode;
 }
 
-export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
+export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
   return (
-    <div className="flex min-h-screen flex-col justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <Shield className="h-12 w-12 text-indigo-600" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 font-poppins">
+      <div className="relative bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-10 w-full max-w-md border border-white/20 animate-fade-in">
+        {/* Lock Icon */}
+        <div className="flex justify-center mb-6">
+          <Lock className="h-12 w-12 text-white opacity-80" />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {title}
-        </h2>
-        {subtitle && (
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {subtitle}
-          </p>
-        )}
-      </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {children}
+        {/* Title and Subtitle */}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-white tracking-tight">
+            {title}
+          </h2>
+          <p className="mt-2 text-sm text-white opacity-80">{subtitle}</p>
         </div>
+
+        {/* Children (Form) */}
+        {children}
       </div>
     </div>
   );
 }
+// Tailwind CSS animations
+const styles = `
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.5s ease-in-out;
+}
+`;

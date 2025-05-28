@@ -5,6 +5,16 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
-    exclude: ['lucide-react'],
+    // Removed 'lucide-react' from exclude to allow pre-bundling
+  },
+  server: { // Proxy should be inside 'server'
+    proxy: {
+      "/v0/b/safepass-599eb.firebasestorage.app": {
+        target: "https://firebasestorage.googleapis.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/v0\/b\/safepass-599eb.firebasestorage.app/, ""),
+        secure: true, // Ensure HTTPS requests are validated
+      },
+    },
   },
 });

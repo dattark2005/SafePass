@@ -1,5 +1,5 @@
-import React from 'react';
-import { Search } from 'lucide-react';
+import React from "react";
+import { Search } from "lucide-react";
 
 interface SearchBarProps extends React.InputHTMLAttributes<HTMLInputElement> {
   onSearch: (query: string) => void;
@@ -17,7 +17,7 @@ export function SearchBar({ onSearch, ...props }: SearchBarProps) {
       </div>
       <input
         type="search"
-        className="block w-full rounded-md border border-gray-300 bg-white pl-10 pr-3 py-2 text-sm transition-colors placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        className="block w-full rounded-xl border border-gray-200 bg-gradient-to-r from-white via-gray-50 to-white pl-10 pr-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 shadow-sm transition-all duration-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:shadow-md hover:border-indigo-300"
         placeholder="Search passwords and notes..."
         onChange={handleChange}
         {...props}

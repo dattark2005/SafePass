@@ -1,8 +1,16 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff, Edit, Trash, Globe } from 'lucide-react';
-import { Password } from '../../types';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/card';
-import { Button } from '../ui/button';
+import React, { useState, useEffect } from "react";
+import { Edit, Trash, Eye, EyeOff } from "lucide-react";
+import { Password } from "../../types";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "../ui/card";
+import { Button } from "../ui/button";
+import { decryptData } from "../../utils/encryption";
+import { useEncryptionKey } from "../../contexts/EncryptionKeyContext";
 
 interface PasswordCardProps {
   password: Password;
@@ -10,35 +18,60 @@ interface PasswordCardProps {
   onDelete: (id: string) => void;
 }
 
-export function PasswordCard({ password, onEdit, onDelete }: PasswordCardProps) {
+export function PasswordCard({
+  password,
+  onEdit,
+  onDelete,
+}: PasswordCardProps) {
+  const { key } = useEncryptionKey();
+  const [decryptedPassword, setDecryptedPassword] = useState("");
+  const [decryptedNotes, setDecryptedNotes] = useState("");
+  const [decryptionError, setDecryptionError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+  useEffect(() => {
+    if (key) {
+      // console.log("PasswordCard - Decrypting data with key:", key);
+      try {
+        setDecryptedPassword(decryptData(password.password, key));
+        if (password.notes) {
+          setDecryptedNotes(decryptData(password.notes, key));
+          // console.log(
+          //   "PasswordCard - Successfully decrypted notes:",
+          //   decryptedNotes
+          // );
+        } else {
+          // console.log(
+          //   "PasswordCard - No notes to decrypt - notes field is null or undefined"
+          // );
+        }
+        setDecryptionError("");
+        // console.log(
+        //   "PasswordCard - Successfully decrypted password:",
+        //   decryptedPassword
+        // );
+      } catch (err) {
+        console.error("PasswordCard - Decryption error:", err);
+        setDecryptionError(
+          "Unable to decrypt password or notes. Please log in again."
+        );
+      }
+    } else {
+      console.error("PasswordCard - Encryption key not available");
+      setDecryptionError("Encryption key not available. Please log in again.");
+    }
+  }, [password.password, password.notes, key]);
 
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
-  const maskedPassword = password.password.replace(/./g, '•');
-
-  const handleOpenWebsite = () => {
-    if (password.website) {
-      let url = password.website;
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        url = 'https://' + url;
-      }
-      window.open(url, '_blank');
-    }
-  };
-
   return (
-    <Card className="overflow-hidden hover:border-indigo-300 transition-colors">
+    <Card className="mb-4 overflow-hidden border border-gray-300 rounded-2xl shadow-md bg-gradient-to-br from-indigo-400 via-white to-red-300 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 ease-in-out hover:border-indigo-400 text-gray-800 font-medium hover:text-indigo-900">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg">{password.title}</CardTitle>
@@ -49,69 +82,74 @@ export function PasswordCard({ password, onEdit, onDelete }: PasswordCardProps) 
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-2">
-        <div>
-          <p className="text-sm font-medium text-gray-500">Username/Email</p>
-          <p className="text-sm">{password.username}</p>
-        </div>
-        <div>
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-gray-500">Password</p>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={togglePasswordVisibility}
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </Button>
+      <CardContent>
+        {decryptionError ? (
+          <div className="rounded-md bg-red-50 p-4">
+            <div className="text-sm text-red-700">{decryptionError}</div>
           </div>
-          <p className="font-mono text-sm">{showPassword ? password.password : maskedPassword}</p>
-        </div>
-        {password.website && (
-          <div>
-            <p className="text-sm font-medium text-gray-500">Website</p>
-            <button
-              onClick={handleOpenWebsite}
-              className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-            >
-              <Globe className="h-3 w-3" />
-              {password.website}
-            </button>
+        ) : (
+          <div className="space-y-2">
+            <p>
+              <strong>Username:</strong> {password.username}
+            </p>
+            <p>
+              <strong>Password:</strong>{" "}
+              {showPassword ? decryptedPassword : "••••••••"}{" "}
+              <button
+                onClick={() => setShowPassword(!showPassword)}
+                className="ml-2 text-indigo-600 hover:text-indigo-800"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 inline" />
+                ) : (
+                  <Eye className="h-4 w-4 inline" />
+                )}
+              </button>
+            </p>
+            {password.url && (
+              <p>
+                <strong>URL:</strong>{" "}
+                <a
+                  href={password.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 hover:underline"
+                >
+                  {password.url}
+                </a>
+              </p>
+            )}
+            {decryptedNotes && (
+              <p>
+                <strong>Notes:</strong> {decryptedNotes}
+              </p>
+            )}
+            <p className="text-xs text-gray-500 mt-4">
+              Updated {formatDate(password.updatedAt)}
+            </p>
           </div>
         )}
-        {password.notes && (
-          <div>
-            <p className="text-sm font-medium text-gray-500">Notes</p>
-            <p className="text-sm">{password.notes}</p>
-          </div>
-        )}
-        <p className="text-xs text-gray-400">
-          Updated {formatDate(password.updatedAt)}
-        </p>
       </CardContent>
-      <CardFooter className="flex justify-end space-x-2 pt-2 border-t border-gray-100">
+      <CardFooter className="flex justify-end space-x-2 pt-4 border-t border-gray-200">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onEdit(password)}
           className="text-gray-600 hover:text-indigo-600"
+          aria-label={`Edit ${password.title}`}
+          disabled={!!decryptionError}
         >
-          <Edit className="h-4 w-4 mr-1" />
+          <Edit className="h-4 w-4 mr-1" aria-hidden="true" />
           Edit
         </Button>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onDelete(password.id)}
-          className="text-gray-600 hover:text-red-600"
+          className="text-gray-600 hover:text-red-500"
+          aria-label={`Delete ${password.title}`}
         >
-          <Trash className="h-4 w-4 mr-1" />
+          <Trash className="h-4 w-4 mr-1" aria-hidden="true" />
           Delete
         </Button>
       </CardFooter>
